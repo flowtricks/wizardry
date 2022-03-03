@@ -21,6 +21,10 @@ let tabletF = $("#tablet").find(".field");
 let mobileS = $("#mobile").find(".breakpoint_field");
 let mobileF = $("#mobile").find(".field");
 
+let screenWidth;
+let emFontSize;
+let classOrElement;
+
 // Set default values
 $("[default-value]").each(function (index) {
   let defaultValue = +$(this).attr("default-value");
@@ -46,6 +50,10 @@ function updateValues() {
 
   scaleType = $("#scale-type").find(".selected p").text();
   scaleDirection = $("#scale-direction").find(".selected p").text();
+
+  screenWidth = $("#screen-width").find(".field").val();
+  emFontSize = $("#font-size").find(".field").val();
+  classOrElement = $("#class-or-element").find(".field").val();
 
   updateUI();
   if (scaleType === "Proportional") {
@@ -179,6 +187,21 @@ function disproportionalCode() {
 }`;
   }
 
+  // let screenWidth;
+  // let emFontSize;
+  // let classOrElement;
+
+  let elementMin;
+  if (classOrElement === "") {
+    elementMin = "";
+  } else {
+    elementMin = `@media screen and (max-width:${screenWidth}px) {
+ ${classOrElement} {font-size: ${
+      (((screenWidth / 100) * myVW) / 16 + myEM) * emFontSize
+    }rem;}
+}`;
+  }
+
   let finalCode = `<style>
 body { font-size: calc(${myVW}vw + ${myEM}em); }
 ${cssMaxWidth}
@@ -186,6 +209,7 @@ ${minFontSize}
 .container {
   max-width: ${designWidth / 16}em;
 }
+${elementMin}
 </style>`;
   editor.getDoc().setValue(finalCode);
 }
@@ -217,14 +241,26 @@ function proportionalCode() {
   let VRmax;
   let VRmaxFont;
   let VRminFont;
+  let minElementSize;
   if (bodyUnit === "VW") {
     VRmax = maxWidth + "px";
     VRmaxFont = (maxWidth / 100) * vwFontSize + "px";
     VRminFont = (minWidth / 100) * vwFontSize + "px";
+    minElementSize = (screenWidth / 100) * vwFontSize * emFontSize + "px";
   } else if (bodyUnit === "REM") {
     VRmax = designWidth / 16 + "em";
     VRmaxFont = vwMaxSize + "rem";
     VRminFont = vwMinSize + "rem";
+    minElementSize =
+      ((screenWidth / 100) * vwFontSize * emFontSize) / 16 + "rem";
+  }
+  let elementMin;
+  if (classOrElement === "") {
+    elementMin = "";
+  } else {
+    elementMin = `@media screen and (max-width:${screenWidth}px) {
+ ${classOrElement} {font-size: ${minElementSize};}
+}`;
   }
   if (maxWidthToggle === "on") {
     maxCode = `/* Max Font Size */
@@ -252,6 +288,7 @@ body {
 }
 ${maxCode}
 ${minCode}
+${elementMin}
 </style>`;
   editor.getDoc().setValue(finalCode);
   // Javascript stuff
@@ -329,7 +366,7 @@ $(".dropdown_link").on("click", function () {
 // Field validation
 $("[default-value]").on("focusout", function (e) {
   if ($(this).val() === "" || +$(this).val() < 0) {
-    let defaultValue = +$(this).attr("default-value");
+    let defaultValue = $(this).attr("default-value");
     $(this).val(defaultValue);
   }
 });
@@ -410,6 +447,9 @@ function urlCreator() {
 &tabletF=${tabletF.val()}
 &mobileS=${mobileS.val()}
 &mobileF=${mobileF.val()}
+&screenWidth=${screenWidth}
+&emFontSize=${emFontSize}
+&classOrElement=${classOrElement.replace(" ", "%20")}
 &projectName=${projectName}`;
   $(".field.is-project.is-url").val(myUrl);
 }
@@ -472,6 +512,15 @@ function checkURL() {
   }
   if (params.has("projectName")) {
     $(".field.is-client").val(params.get("projectName"));
+  }
+  if (params.has("screenWidth") && params.get("screenWidth") !== "") {
+    $("#screen-width").find(".field").val(params.get("screenWidth"));
+  }
+  if (params.has("emFontSize") && params.get("emFontSize") !== "") {
+    $("#font-size").find(".field").val(params.get("emFontSize"));
+  }
+  if (params.has("classOrElement") && params.get("classOrElement") !== "") {
+    $("#class-or-element").find(".field").val(params.get("classOrElement"));
   }
   updateValues();
 }
