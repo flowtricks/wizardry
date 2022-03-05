@@ -203,7 +203,10 @@ function disproportionalCode() {
   }
 
   let finalCode = `<style>
-body { font-size: calc(${myVW}vw + ${myEM}em); }
+body { 
+  min-height: 0vw;
+  font-size: calc(${myVW}vw + ${myEM}em);
+}
 ${cssMaxWidth}
 ${minFontSize}
 .container {
